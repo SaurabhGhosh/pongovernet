@@ -1,2 +1,2 @@
-# pongovernet
-Python scripts for server and client parts of the Pong game that can be played over network by multiple players.
+# Pong game over network
+This python repository contains all the python codes to support running a multiplayer Pong game over network. Players in the local network will run the client program to connect to the server program and play against another player on the network.
