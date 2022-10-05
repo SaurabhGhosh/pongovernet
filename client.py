@@ -49,6 +49,7 @@ class PongDTO:
 
 class Bat:
     """This class facilitates managing the players’ bats on screen."""
+
     def __init__(self, x, y, color):
         """Constructor to initiate the bat"""
         self.x = x
@@ -76,6 +77,7 @@ class Bat:
 
 class Ball:
     """This class facilitates managing the movement of the ball on screen."""
+
     def __init__(self, x, y, color):
         """Constructor to initiate the ball"""
         self.x = x
@@ -92,28 +94,22 @@ class Ball:
         pygame.draw.circle(window, self.color, (self.x, self.y), (ball_diameter / 2))
 
 
-# Initiate font
-pygame.font.init()
-# Initiate the Bat objects and add to a list
-bats = []
-bat1 = Bat(player1_start_x, player1_start_y, (0, 0, 0))
-bat2 = Bat(player2_start_x, player2_start_y, (0, 0, 0))
-bats.append(bat1)
-bats.append(bat2)
+def update_bat_ball(dto):
+    """This method takes PongDTO as input and updates the positions of the bats and the ball.
+    This method also sets the colours of the player and opponent differently."""
 
-# Initiate the Ball object
-ball = Ball(ball_start_x, ball_start_y, (0, 0, 0))
+    # Set the colors of bats
+    bats[player_id].color = (144, 238, 144)  # light green
+    bats[opponent_id].color = (255, 185, 127)  # light orange
 
-# Show the game title and player’s points on title bar of the window
-pygame.display.set_caption(f'Ping-Pong Your score (Green):{bat1.points}, Opponent (Orange):{bat2.points}')
-# Set the surface attributes for the window
-window_width = window_width
-window_height = window_height
-win = pygame.display.set_mode((window_width, window_height))
+    # Set the initial coordinates of the bats and ball as received from server
+    bats[0].x = dto.player_x[0]
+    bats[0].y = dto.player_y[0]
+    bats[1].x = dto.player_x[1]
+    bats[1].y = dto.player_y[1]
+    ball.x = dto.ball_x
+    ball.y = dto.ball_y
 
-run = True
-# Get the game clock
-clock = pygame.time.Clock()
 
 # Create a socket for the server and client connection
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -134,24 +130,25 @@ player_id = receive_dto.player_id
 # The opponent id is the other id from set {0,1}
 opponent_id = list({0, 1} - {receive_dto.player_id})[0]
 
-# Set the colors of bats
-bats[player_id].color = (144, 238, 144)  # light green
-bats[opponent_id].color = (255, 185, 127)  # light orange
+# Initiate the Bat objects
+bats = [Bat(0, 0, (0, 0, 0)), Bat(0, 0, (0, 0, 0))]
+# Initiate the Ball object
+ball = Ball(0, 0, (0, 0, 0))
 
-# Set the initial coordinates of the bats and ball as received from server
-bats[0].x = receive_dto.player_x[0]
-bats[0].y = receive_dto.player_y[0]
-bats[1].x = receive_dto.player_x[1]
-bats[1].y = receive_dto.player_y[1]
-ball.x = receive_dto.ball_x
-ball.y = receive_dto.ball_y
+# Update the coordinates of the bats and ball with received DTO. This will get the initial positions from the server
+update_bat_ball(receive_dto)
+# Initiate font
+pygame.font.init()
 
+# Show the game title and player’s points on title bar of the window
+pygame.display.set_caption(f'Ping-Pong Your score (Green):{bats[player_id].points},'
+                           f' Opponent (Orange):{bats[opponent_id].points}')
+# Set the surface attributes for the window
+win = pygame.display.set_mode((window_width, window_height))
 
-# Set the direction and speed of the ball as received from server
-ball.velocity_x = receive_dto.ball_velocity_x
-ball.velocity_y = receive_dto.ball_velocity_y
-ball.direction_x = receive_dto.ball_direction_x
-ball.direction_y = receive_dto.ball_direction_y
+run = True
+# Get the game clock
+clock = pygame.time.Clock()
 
 # Start the loop for the game
 while run:
@@ -203,19 +200,8 @@ while run:
         print("An error occurred:", e)
         break
 
-    # Update the coordinates of the bats as received. This will update opponent’s bat movement as well
-    bats[0].x = receive_dto.player_x[0]
-    bats[0].y = receive_dto.player_y[0]
-    bats[1].x = receive_dto.player_x[1]
-    bats[1].y = receive_dto.player_y[1]
-    # Update the movement of the ball
-    ball.x = receive_dto.ball_x
-    ball.y = receive_dto.ball_y
-    # Update the direction and velocity of the ball
-    ball.velocity_x = receive_dto.ball_velocity_x
-    ball.velocity_y = receive_dto.ball_velocity_y
-    ball.direction_x = receive_dto.ball_direction_x
-    ball.direction_y = receive_dto.ball_direction_y
+    # Update the coordinates of the bats and ball with received DTO.
+    update_bat_ball(bats, ball, receive_dto)
 
     # Update the points as received from DTO into the title bar
     pygame.display.set_caption(
