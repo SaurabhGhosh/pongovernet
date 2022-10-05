@@ -201,7 +201,7 @@ while run:
         break
 
     # Update the coordinates of the bats and ball with received DTO.
-    update_bat_ball(bats, ball, receive_dto)
+    update_bat_ball(receive_dto)
 
     # Update the points as received from DTO into the title bar
     pygame.display.set_caption(
